@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejada - Sign Up</title>
+  <style>
+    :root {
+      --dark-bg: #0f1c2e;
+      --accent-blue: #2196f3;
+      --white: #ffffff;
+      --gray-light: #ccc;
+      --gray-dark: #444;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f1c2e, #1e3a5f);
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.08);
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      margin-top: 5vh;
+    }
+
+    .form-header h2 {
+      margin-bottom: 8px;
+      font-size: 2rem;
+    }
+
+    .form-header p {
+      margin-bottom: 24px;
+      color: var(--gray-light);
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gray-dark);
+      border-radius: 6px;
+      background-color: rgba(0, 0, 0, 0.2);
+      color: var(--white);
+      box-sizing: border-box;
+    }
+
+    input::placeholder {
+      color: var(--gray-light);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background-color: var(--accent-blue);
+      color: var(--white);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      background-color: #1a7abd;
+    }
+
+    .btn:disabled {
+      background-color: #666;
+      cursor: not-allowed;
+    }
+    
+    .login-link {
+        margin-top: 20px;
+        color: var(--gray-light);
+    }
+
+    .login-link a {
+        color: var(--accent-blue);
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+
+    #message {
+        margin-top: 10px;
+        min-height: 20px;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .success {
+        color: #4caf50;
+        background-color: rgba(76, 175, 80, 0.1);
+        border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .error {
+        color: #ff4d4d;
+        background-color: rgba(255, 77, 77, 0.1);
+        border: 1px solid rgba(255, 77, 77, 0.3);
+    }
+
+    .back-link {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .back-link a {
+        color: var(--accent-blue);
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-header">
+      <h2>Create Account</h2>
+      <p>Join the Virtual Bank System</p>
+    </div>
+    
+    <form id="signup-form">
+      <div class="input-group">
+        <input type="text" id="firstName" placeholder="First Name" required />
+      </div>
+       <div class="input-group">
+        <input type="text" id="lastName" placeholder="Last Name" required />
+      </div>
+      <div class="input-group">
+        <input type="text" id="username" placeholder="Username" required />
+      </div>
+      <div class="input-group">
+        <input type="email" id="email" placeholder="Email" required />
+      </div>
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password" required />
+      </div>
+      <button type="submit" class="btn" id="signup-btn">Sign Up</button>
+      <div id="message"></div>
+    </form>
+    
+    <div class="login-link">
+        <p>Already have an account? <a href="Ejada Login Form.html">Login</a></p>
+    </div>
+
+    <div class="back-link">
+        <a href="Ejada Login Page.html">← Back to Home</a>
+    </div>
+  </div>
+
+  <script src="js/api-service.js"></script>
+  <script src="js/dev-utils.js"></script>
+  <script>
+    const form = document.getElementById('signup-form');
+    const messageDiv = document.getElementById('message');
+    const signupBtn = document.getElementById('signup-btn');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Clear previous messages
+        messageDiv.textContent = '';
+        messageDiv.className = '';
+        
+        // Get form data
+        const formData = {
+            firstName: document.getElementById('firstName').value.trim(),
+            lastName: document.getElementById('lastName').value.trim(),
+            username: document.getElementById('username').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            password: document.getElementById('password').value
+        };
+        
+        // Validate form data
+        if (!formData.firstName || !formData.lastName || !formData.username || !formData.email || !formData.password) {
+            UIUtils.showStatus(messageDiv, 'Please fill in all fields.', 'error');
+            return;
+        }
+        
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            UIUtils.showStatus(messageDiv, 'Please enter a valid email address.', 'error');
+            return;
+        }
+        
+        // Validate password strength
+        if (formData.password.length < 8) {
+            UIUtils.showStatus(messageDiv, 'Password must be at least 8 characters long.', 'error');
+            return;
+        }
+        
+        // Disable button and show loading
+        UIUtils.setButtonLoading(signupBtn, true, 'Sign Up', 'Creating Account...');
+        UIUtils.showStatus(messageDiv, 'Creating your account...', 'info');
+
+        // Call the register API
+        UserService.register(formData)
+            .then(response => {
+                UIUtils.showStatus(messageDiv, 'Registration successful! Redirecting to login...', 'success');
+                
+                // Clear form
+                form.reset();
+                
+                // Redirect after delay
+                setTimeout(() => {
+                    window.location.href = 'Ejada Login Form.html';
+                }, 2000);
+            })
+            .catch(error => {
+                UIUtils.handleApiError(error, messageDiv);
+            })
+            .finally(() => {
+                UIUtils.setButtonLoading(signupBtn, false, 'Sign Up');
+            });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejada - Login</title>
+  <style>
+     :root {
+      --dark-bg: #0f1c2e;
+      --accent-blue: #2196f3;
+      --white: #ffffff;
+      --gray-light: #ccc;
+      --gray-dark: #444;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f1c2e, #1e3a5f);
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.08);
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      margin-top: 10vh;
+    }
+
+    .form-header h2 {
+      margin-bottom: 8px;
+      font-size: 2rem;
+    }
+
+    .form-header p {
+      margin-bottom: 24px;
+      color: var(--gray-light);
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gray-dark);
+      border-radius: 6px;
+      background-color: rgba(0, 0, 0, 0.2);
+      color: var(--white);
+      box-sizing: border-box;
+    }
+
+    input::placeholder {
+      color: var(--gray-light);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background-color: var(--accent-blue);
+      color: var(--white);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      background-color: #1a7abd;
+    }
+
+    .btn:disabled {
+      background-color: #666;
+      cursor: not-allowed;
+    }
+    
+    .signup-link {
+        margin-top: 20px;
+        color: var(--gray-light);
+    }
+
+    .signup-link a {
+        color: var(--accent-blue);
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .signup-link a:hover {
+        text-decoration: underline;
+    }
+
+    #message {
+        margin-top: 10px;
+        min-height: 20px;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .success {
+        color: #4caf50;
+        background-color: rgba(76, 175, 80, 0.1);
+        border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .error {
+        color: #ff4d4d;
+        background-color: rgba(255, 77, 77, 0.1);
+        border: 1px solid rgba(255, 77, 77, 0.3);
+    }
+
+    .eye-toggle {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--gray-light);
+        user-select: none;
+    }
+
+    .back-link {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .back-link a {
+        color: var(--accent-blue);
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-header">
+      <h2>Welcome to Ejada</h2>
+      <p>Please login to continue</p>
+    </div>
+    
+    <form id="login-form">
+      <div class="input-group">
+        <input type="text" id="username" placeholder="Username" required />
+      </div>
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password" required />
+        <span class="eye-toggle" onclick="togglePasswordVisibility()">👁️</span>
+      </div>
+      <button type="submit" class="btn" id="login-btn">Login</button>
+      <div id="message"></div>
+    </form>
+
+    <div class="signup-link">
+        <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+    </div>
+
+    <div class="back-link">
+        <a href="Ejada Login Page.html">← Back to Home</a>
+    </div>
+  </div>
+
+  <script src="js/api-service.js"></script>
+  <script src="js/dev-utils.js"></script>
+  <script>
+    const form = document.getElementById('login-form');
+    const messageDiv = document.getElementById('message');
+    const loginBtn = document.getElementById('login-btn');
+
+    // Check if there's a redirect reason
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const reason = urlParams.get('reason');
+      
+      if (reason === 'session_expired') {
+        UIUtils.showStatus(messageDiv, 'Your session has expired. Please log in again.', 'info');
+      }
+    };
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Clear previous messages
+      messageDiv.textContent = '';
+      messageDiv.className = '';
+      
+      // Get form data
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      
+      // Basic validation
+      if (!username || !password) {
+        UIUtils.showStatus(messageDiv, 'Please enter both username and password', 'error');
+        return;
+      }
+      
+      // Disable button and show loading
+      UIUtils.setButtonLoading(loginBtn, true, 'Login', 'Logging in...');
+      UIUtils.showStatus(messageDiv, 'Authenticating...', 'info');
+
+      // Call the login API
+      UserService.login({
+        username: username,
+        password: password
+      })
+        .then(response => {
+          // Store user data in localStorage with session management
+          AuthUtils.saveUserData(response);
+          
+          UIUtils.showStatus(messageDiv, `Welcome ${username}! Redirecting to dashboard...`, 'success');
+          
+          // Redirect to dashboard
+          setTimeout(() => {
+            window.location.href = 'Account Details Page.html';
+          }, 1500);
+        })
+        .catch(error => {
+          UIUtils.handleApiError(error, messageDiv);
+        })
+        .finally(() => {
+          UIUtils.setButtonLoading(loginBtn, false, 'Login');
+        });
+    });
+
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('password');
+      const eyeToggle = document.querySelector('.eye-toggle');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeToggle.textContent = '🙈';
+      } else {
+        passwordInput.type = 'password';
+        eyeToggle.textContent = '👁️';
+      }
+    }
+  </script>
+</body>
+</html>

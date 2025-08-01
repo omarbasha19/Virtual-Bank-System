@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejada - Money Transfer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f1f3fd;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .container {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 500px;
+    }
+    h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 25px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+        font-weight: bold;
+    }
+    input, select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+    .btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        background-color: #4a6cf7;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.3s;
+    }
+    .btn:hover {
+        background-color: #3a5ada;
+    }
+    .btn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+    #status-msg {
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+        min-height: 20px;
+        padding: 10px;
+        border-radius: 6px;
+    }
+    .error {
+        color: #dc3545;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+    }
+    .success {
+        color: #155724;
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+    }
+    .warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+    }
+    .back-link {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .back-link a {
+        color: #4a6cf7;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+    .transfer-preview {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin-top: 15px;
+        border-left: 4px solid #4a6cf7;
+        display: none;
+    }
+    .transfer-preview h4 {
+        margin-top: 0;
+        color: #333;
+    }
+    .preview-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    .balance-info {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💸 Transfer Money</h1>
+    
+    <form id="transfer-form">
+      <div class="form-group">
+        <label for="fromAccount">From Account</label>
+        <select id="fromAccount" required>
+          <option value="">Select an account...</option>
+        </select>
+        <div class="balance-info" id="balance-info"></div>
+      </div>
+      
+      <div class="form-group">
+        <label for="toAccount">To Account ID</label>
+        <input type="text" id="toAccount" placeholder="Enter recipient's account ID" required />
+      </div>
+      
+      <div class="form-group">
+        <label for="amount">Amount ($)</label>
+        <input type="number" id="amount" placeholder="0.00" required step="0.01" min="0.01" />
+      </div>
+      
+      <div class="form-group">
+        <label for="description">Description</label>
+        <input type="text" id="description" placeholder="e.g., Rent payment, Lunch money" required />
+      </div>
+
+      <div class="transfer-preview" id="transfer-preview">
+        <h4>Transfer Preview</h4>
+        <div class="preview-row">
+          <span>From:</span>
+          <span id="preview-from"></span>
+        </div>
+        <div class="preview-row">
+          <span>To:</span>
+          <span id="preview-to"></span>
+        </div>
+        <div class="preview-row">
+          <span>Amount:</span>
+          <span id="preview-amount"></span>
+        </div>
+        <div class="preview-row">
+          <span>Description:</span>
+          <span id="preview-description"></span>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn" id="transfer-btn">Review Transfer</button>
+      <div id="status-msg"></div>
+    </form>
+    
+    <div class="back-link">
+        <a href="Account Details Page.html">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script src="js/api-service.js"></script>
+  <script src="js/dev-utils.js"></script>
+  <script>
+    // Will store the user's accounts
+    let userAccounts = [];
+    let userData = null;
+    let isReviewMode = false;
+
+    window.onload = function() {
+        // Check if user is logged in with session validation
+        if (!AuthUtils.requireAuth()) return;
+        
+        // Get user data
+        userData = AuthUtils.getUserData();
+        
+        // Load accounts and set up form
+        loadUserAccounts();
+        setupFormListeners();
+        
+        // Extend session on activity
+        AuthUtils.extendSession();
+    };
+
+    function loadUserAccounts() {
+        const fromAccountSelect = document.getElementById('fromAccount');
+        const statusMsg = document.getElementById('status-msg');
+        
+        // Show loading state
+        fromAccountSelect.innerHTML = '<option value="">Loading accounts...</option>';
+        
+        // Get user's accounts from API
+        AccountService.getUserAccounts(userData.id)
+            .then(accounts => {
+                // Store accounts for later use
+                userAccounts = accounts;
+                
+                // Clear and populate select
+                fromAccountSelect.innerHTML = '<option value="">Select an account...</option>';
+                
+                if (accounts.length === 0) {
+                    UIUtils.showStatus(statusMsg, 'You don\'t have any accounts to transfer from. Please create an account first.', 'warning');
+                    return;
+                }
+                
+                accounts.forEach(acc => {
+                    const option = document.createElement('option');
+                    option.value = acc.id || acc.accountId;
+                    const accountType = UIUtils.formatAccountType(acc.accountType);
+                    const accountNumber = AuthUtils.formatAccountNumber(acc.accountNumber);
+                    const formattedBalance = AuthUtils.formatCurrency(parseFloat(acc.balance));
+                    
+                    option.textContent = `${accountType} (${accountNumber}) - Balance: ${formattedBalance}`;
+                    option.dataset.balance = acc.balance;
+                    option.dataset.accountNumber = acc.accountNumber;
+                    fromAccountSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading accounts:', error);
+                fromAccountSelect.innerHTML = '<option value="">Error loading accounts</option>';
+                UIUtils.handleApiError(error, statusMsg);
+            });
+    }
+
+    function setupFormListeners() {
+        const fromAccount = document.getElementById('fromAccount');
+        const amountInput = document.getElementById('amount');
+        const toAccountInput = document.getElementById('toAccount');
+        const descriptionInput = document.getElementById('description');
+
+        fromAccount.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const balanceInfo = document.getElementById('balance-info');
+            
+            if (selectedOption?.dataset?.balance) {
+                balanceInfo.textContent = `Available Balance: ${AuthUtils.formatCurrency(parseFloat(selectedOption.dataset.balance))}`;
+                balanceInfo.style.color = '#28a745';
+            } else {
+                balanceInfo.textContent = '';
+            }
+            updatePreview();
+        });
+
+        [amountInput, toAccountInput, descriptionInput].forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+    }
+
+    function updatePreview() {
+        const fromAccount = document.getElementById('fromAccount');
+        const toAccount = document.getElementById('toAccount').value.trim();
+        const amount = document.getElementById('amount').value.trim();
+        const description = document.getElementById('description').value.trim();
+
+        if (fromAccount.value && toAccount && amount && description) {
+            const selectedOption = fromAccount.options[fromAccount.selectedIndex];
+            
+            document.getElementById('preview-from').textContent = selectedOption.textContent;
+            document.getElementById('preview-to').textContent = toAccount;
+            document.getElementById('preview-amount').textContent = AuthUtils.formatCurrency(parseFloat(amount));
+            document.getElementById('preview-description').textContent = description;
+            
+            document.getElementById('transfer-preview').style.display = 'block';
+            document.getElementById('transfer-btn').textContent = 'Initiate Transfer';
+            isReviewMode = true;
+        } else {
+            document.getElementById('transfer-preview').style.display = 'none';
+            document.getElementById('transfer-btn').textContent = 'Review Transfer';
+            isReviewMode = false;
+        }
+    }
+
+    document.getElementById('transfer-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const transferBtn = document.getElementById('transfer-btn');
+        const statusMsg = document.getElementById('status-msg');
+        const fromAccount = document.getElementById('fromAccount');
+        const amount = parseFloat(document.getElementById('amount').value);
+        
+        // Form validation
+        if (!fromAccount.value) {
+            UIUtils.showStatus(statusMsg, 'Please select a source account', 'error');
+            return;
+        }
+        
+        const selectedOption = fromAccount.options[fromAccount.selectedIndex];
+        if (!selectedOption) {
+            UIUtils.showStatus(statusMsg, 'Invalid account selection', 'error');
+            return;
+        }
+        
+        const balance = parseFloat(selectedOption.dataset.balance);
+        const toAccountId = document.getElementById('toAccount').value.trim();
+        const description = document.getElementById('description').value.trim();
+        
+        // Additional validations
+        if (!toAccountId) {
+            UIUtils.showStatus(statusMsg, 'Please enter the recipient account ID', 'error');
+            return;
+        }
+        
+        if (isNaN(amount) || amount <= 0) {
+            UIUtils.showStatus(statusMsg, 'Please enter a valid transfer amount greater than zero', 'error');
+            return;
+        }
+        
+        if (!description) {
+            UIUtils.showStatus(statusMsg, 'Please enter a description for the transfer', 'error');
+            return;
+        }
+
+        // Validate balance
+        if (amount > balance) {
+            UIUtils.showStatus(statusMsg, 'Insufficient funds for this transfer', 'error');
+            return;
+        }
+        
+        // If we're not in review mode yet, switch to review mode and return
+        if (!isReviewMode) {
+            updatePreview();
+            return;
+        }
+
+        // Disable button and show processing
+        UIUtils.setButtonLoading(transferBtn, true, 'Initiate Transfer', 'Processing Transfer...');
+        UIUtils.showStatus(statusMsg, 'Processing your transfer...', 'warning');
+
+        // Get form data
+        const fromAccountId = fromAccount.value;
+        const transferAmount = amount;
+        
+        // Prepare transfer data
+        const transferData = {
+            fromAccountId: fromAccountId,
+            toAccountId: toAccountId,
+            amount: transferAmount,
+            description: description
+        };
+        
+        // Call the transfer API
+        AccountService.transferMoney(transferData)
+            .then(response => {
+                UIUtils.showStatus(statusMsg, '✅ Transfer completed successfully!', 'success');
+                
+                // Store transfer details for confirmation page
+                localStorage.setItem('transferStatus', 'Success');
+                localStorage.setItem('transferDetails', JSON.stringify({
+                    amount: transferAmount,
+                    toAccount: toAccountId,
+                    description: description,
+                    fromAccount: selectedOption.textContent,
+                    transactionId: response.transactionId || 'TXN' + Date.now(),
+                    timestamp: new Date().toISOString()
+                }));
+                
+                // Redirect to confirmation page
+                setTimeout(() => {
+                    window.location.href = 'Transfer Confirmation Page.html';
+                }, 1500);
+            })
+            .catch(error => {
+                UIUtils.handleApiError(error, statusMsg);
+            })
+            .finally(() => {
+                UIUtils.setButtonLoading(transferBtn, false, isReviewMode ? 'Initiate Transfer' : 'Review Transfer');
+            });
+    });
+  </script>
+</body>
+</html>
