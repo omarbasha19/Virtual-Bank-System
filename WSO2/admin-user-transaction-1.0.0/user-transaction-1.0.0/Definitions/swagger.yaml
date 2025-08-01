@@ -1,0 +1,155 @@
+openapi: 3.0.1
+info:
+  title: user-transaction
+  version: 1.0.0
+servers:
+ -
+  url: /
+security:
+ -
+  default: []
+paths:
+  /transfer/initiation:
+    post:
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequestInitiation"
+        required: true
+      responses:
+        "200":
+          description: Transfer initiation success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferResponse"
+        "400":
+          description: Invalid account or insufficient funds
+      security:
+       -
+        default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+         - api_key
+         - oauth2
+        optional: false
+  /transfer/execution:
+    post:
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequestExecution"
+        required: true
+      responses:
+        "200":
+          description: Transfer executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferResponse"
+        "400":
+          description: Invalid account or insufficient funds
+      security:
+       -
+        default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+         - api_key
+         - oauth2
+        optional: false
+components:
+  schemas:
+    TransferRequestInitiation:
+      required:
+       - amount
+       - fromAccountId
+       - toAccountId
+      type: object
+      properties:
+        fromAccountId:
+          type: string
+        toAccountId:
+          type: string
+        amount:
+          type: number
+          format: double
+        description:
+          type: string
+    TransferRequestExecution:
+      required:
+       - transactionId
+      type: object
+      properties:
+        transactionId:
+          type: string
+          description: Required only for execution step
+    TransferResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        status:
+          type: string
+          enum:
+           - INITIATED
+           - FAILED
+           - SUCCESS
+        timestamp:
+          type: string
+          format: date-time
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://test.com
+          scopes: {}
+x-wso2-api-key-header: ApiKey
+x-wso2-auth-header: Authorization
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+   - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+   - authorization
+   - Access-Control-Allow-Origin
+   - Content-Type
+   - SOAPAction
+   - apikey
+   - Internal-Key
+  accessControlAllowMethods:
+   - GET
+   - PUT
+   - POST
+   - DELETE
+   - PATCH
+   - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+   - http://localhost:9094/transactions
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+   - http://localhost:9094/transactions
+  type: http
+x-wso2-basePath: /user-transaction/1.0.0
+x-wso2-transports:
+ - http
+ - https
+x-wso2-application-security:
+  security-types:
+   - api_key
+   - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

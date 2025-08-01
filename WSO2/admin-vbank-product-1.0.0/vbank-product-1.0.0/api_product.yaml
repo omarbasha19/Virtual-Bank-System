@@ -1,0 +1,141 @@
+type: api_product
+version: v4.4.0
+data:
+  id: 2adac760-ee67-4518-94e4-370e080b818a
+  name: vbank-product
+  context: /vbank
+  version: 1.0.0
+  provider: admin
+  hasThumbnail: false
+  state: PUBLISHED
+  enableSchemaValidation: false
+  isDefaultVersion: true
+  isRevision: false
+  revisionId: 0
+  responseCachingEnabled: false
+  cacheTimeout: 300
+  visibility: PUBLIC
+  visibleRoles: []
+  visibleTenants: []
+  accessControl: NONE
+  accessControlRoles: []
+  transport:
+   - http
+   - https
+  tags: []
+  policies:
+   - Unlimited
+  authorizationHeader: Authorization
+  apiKeyHeader: ApiKey
+  securityScheme:
+   - oauth_basic_auth_api_key_mandatory
+   - oauth2
+  subscriptionAvailability: ALL_TENANTS
+  subscriptionAvailableTenants: []
+  additionalProperties: []
+  additionalPropertiesMap: {}
+  businessInformation: {}
+  corsConfiguration:
+    corsConfigurationEnabled: false
+    accessControlAllowOrigins:
+     - '*'
+    accessControlAllowCredentials: false
+    accessControlAllowHeaders:
+     - authorization
+     - Access-Control-Allow-Origin
+     - Content-Type
+     - SOAPAction
+     - apikey
+     - Internal-Key
+    accessControlAllowMethods:
+     - GET
+     - PUT
+     - POST
+     - DELETE
+     - PATCH
+     - OPTIONS
+  createdTime: "1753749363996"
+  lastUpdatedTime: 2025-07-29 03:47:41.349
+  lastUpdatedTimestamp: "1753750061349"
+  gatewayVendor: wso2
+  apis:
+   -
+    name: user-transaction
+    apiId: ffe70fa7-fe9c-424e-b59b-0629e4f02ac0
+    version: 1.0.0
+    operations:
+     -
+      id: ""
+      target: /transfer/initiation
+      verb: POST
+      authType: Application & Application User
+      throttlingPolicy: Unlimited
+      scopes: []
+      usedProductIds: []
+      operationPolicies:
+        request: []
+        response: []
+        fault: []
+     -
+      id: ""
+      target: /transfer/execution
+      verb: POST
+      authType: Application & Application User
+      throttlingPolicy: Unlimited
+      scopes: []
+      usedProductIds: []
+      operationPolicies:
+        request: []
+        response: []
+        fault: []
+   -
+    name: user-service
+    apiId: cd07ad66-7e52-409b-bdee-72bd4b6096ba
+    version: 1.0.0
+    operations:
+     -
+      id: ""
+      target: /register
+      verb: POST
+      authType: Application & Application User
+      throttlingPolicy: Unlimited
+      scopes: []
+      usedProductIds: []
+      operationPolicies:
+        request: []
+        response: []
+        fault: []
+     -
+      id: ""
+      target: /login
+      verb: POST
+      authType: Application & Application User
+      throttlingPolicy: Unlimited
+      scopes: []
+      usedProductIds: []
+      operationPolicies:
+        request: []
+        response: []
+        fault: []
+   -
+    name: user-dashboard
+    apiId: 6aed9f39-0610-4020-9491-0366f1bf07c5
+    version: 1.0.0
+    operations:
+     -
+      id: ""
+      target: "/dashboard/{userId}"
+      verb: GET
+      authType: Application & Application User
+      throttlingPolicy: Unlimited
+      scopes: []
+      usedProductIds: []
+      operationPolicies:
+        request: []
+        response: []
+        fault: []
+  scopes: []
+  categories: []
+  audiences:
+   - all
+  egress: false
