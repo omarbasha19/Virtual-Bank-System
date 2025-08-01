@@ -228,5 +228,72 @@ C:\Users\meton\Downloads\Ejada Project\front-end\front-end
 To shut down the system, press `Ctrl+C` in each service's PowerShell window.
 
 ---
+@echo off
+title Ejada Virtual Banking - Run & Test
+color 0A
 
-For further assistance or to report issues, please contact the Ejada Virtual Banking System team.
+echo =========================================
+echo   Ejada Virtual Banking - Run & Test
+echo =========================================
+
+:: 1. Configure WSO2
+echo [1/7] Configure WSO2 API Gateway
+echo - Open WSO2 Management Console
+echo - Make sure all API Endpoints are correctly configured and working
+pause
+
+:: 2. Generate Access Key
+echo [2/7] Generate Access Key from WSO2 Developer Portal
+echo - Open Developer Portal
+echo - Select the published API Product
+echo - Generate an Access Key and keep it for testing
+pause
+
+:: 3. Test APIs with Postman
+echo [3/7] Test APIs using Postman
+echo - Open Postman
+echo - Add the generated key in the correct header (Authorization or Key)
+echo - Test all endpoints and verify the responses
+pause
+
+:: 4. Start Backend Microservices
+echo [4/7] Starting Backend Services...
+start powershell -NoExit -Command "cd 'Eureka-Server'; .\mvnw.cmd spring-boot:run"
+timeout /t 10 >nul
+start powershell -NoExit -Command "cd 'UserService'; .\mvnw.cmd spring-boot:run"
+timeout /t 5 >nul
+start powershell -NoExit -Command "cd 'AccountService'; .\mvnw.cmd spring-boot:run"
+timeout /t 5 >nul
+start powershell -NoExit -Command "cd 'TransactionService'; .\mvnw.cmd spring-boot:run"
+timeout /t 5 >nul
+start powershell -NoExit -Command "cd 'LoggingService'; .\mvnw.cmd spring-boot:run"
+timeout /t 5 >nul
+start powershell -NoExit -Command "cd 'BFFService'; .\mvnw.cmd spring-boot:run"
+
+echo - Check http://localhost:8761 to make sure all services are registered
+pause
+
+:: 5. Open Frontend Login Page
+echo [5/7] Opening Frontend Login Page...
+start "" "front-end\front-end\Ejada Login Page.html"
+pause
+
+:: 6. Enable CORS Unblock Extension
+echo [6/7] Enable CORS Unblock in your browser
+echo - Open the CORS Unblock extension in your browser toolbar
+echo - Check all important options (Access-Control-Allow-Origin, Methods, Headers, etc.)
+echo - Click START to enable
+echo Extension link: https://chromewebstore.google.com/detail/cors-unblock/lfhmikememgdcahcdlaciloancbhjino?hl=en
+pause
+
+:: 7. Test Login Integration
+echo [7/7] Test the login page with backend integration
+echo - Enter valid login credentials
+echo - Verify that requests reach the backend without CORS issues
+pause
+
+echo =========================================
+echo All steps completed. The system is ready.
+echo =========================================
+pause
+
